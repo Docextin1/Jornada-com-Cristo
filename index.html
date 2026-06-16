@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jornada de 20 Dias com Cristo - Web App</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Lora:ital,wght@0,400;0,500;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #fbfaf7;
+            color: #2d2926;
+        }
+        .font-serif-book {
+            font-family: 'Lora', Georgia, serif;
+        }
+        .font-title {
+            font-family: 'Cinzel', serif;
+        }
+        
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f3edd8;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #d4af37;
+            border-radius: 3px;
+        }
+
+        /* Estilos de transição de fade */
+        .fade-in {
+            animation: fadeIn 0.4s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Estilos de Impressão Otimizados para PDF */
+        @media print {
+            body {
+                background: white !important;
+                color: black !important;
+                font-size: 12pt !important;
+            }
+            .no-print {
+                display: none !important;
+            }
+            .print-layout {
+                display: block !important;
+                max-width: 100% !important;
+                padding: 0 !important;
+                margin: 0 !important;
+            }
+            .page-break {
+                page-break-before: always !important;
+                break-before: page !important;
+                padding-top: 2rem !important;
+            }
+            textarea {
+                border: 1px solid #999 !important;
+                background: transparent !important;
+                resize: none !important;
+                height: auto !important;
+            }
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col bg-stone-50 text-stone-900 transition-colors duration-300">
+
+    <!-- BARRA DE TOPO DA APLICAÇÃO (Não sai no PDF) -->
+    <header class="no-print bg-stone-900 text-stone-100 py-4 px-6 sticky top-0 z-50 flex flex-wrap items-center justify-between shadow-md border-b border-amber-500/30">
+        <div class="flex items-center space-x-3">
+            <span class="text-2xl">🕊️</span>
+            <div>
+                <h1 class="font-title text-sm md:text-lg tracking-wider text-amber-400">Jornada com Cristo</h1>
+                <p class="text-xs text-stone-400">Seu Devocional Digital Diário</p>
+            </div>
+        </div>
+        <div class="flex items-center space-x-3 mt-2 sm:mt-0">
+            <!-- Botão de Compartilhar via WhatsApp -->
+            <button onclick="shareApp()" class="bg-stone-800 hover:bg-stone-700 text-amber-400 font-semibold px-3 py-2 rounded-lg text-xs transition-all flex items-center space-x-1 border border-amber-500/20" title="Partilhar com Amigos">
+                <span>🔗</span>
+                <span class="hidden md:inline">Partilhar</span>
+            </button>
+            <!-- Botão de Download de PDF -->
+            <button onclick="window.print()" class="bg-amber-500 hover:bg-amber-600 text-stone-950 font-bold px-4 py-2 rounded-lg text-xs transition-all shadow-md flex items-center space-x-2">
+                <span>🖨️</span>
+                <span>Baixar PDF Completo</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- CONTENT LAYOUT -->
+    <div class="flex-1 max-w-7xl w-full mx-auto flex flex-col lg:flex-row">
+        
+        <!-- MENU LATERAL (Não sai no PDF) -->
+        <aside class="no-print w-full lg:w-80 bg-stone-100 border-r border-stone-200 p-6 flex flex-col space-y-6">
+            
+            <!-- Caixa de Boas-Vindas e Ajuda -->
+            <div class="bg-white p-4 rounded-xl border border-stone-200 shadow-xs">
+                <h3 class="font-title text-xs tracking-wider text-amber-800 font-bold mb-1">Como Funciona?</h3>
+                <p class="text-xs text-stone-600 leading-relaxed">Leia o devocional de cada dia, faça o desafio prático proposto, anote as suas revelações no diário e marque como feito para acompanhar o seu progresso!</p>
+            </div>
+
+            <!-- Progresso Geral -->
+            <div class="bg-white p-4 rounded-xl border border-stone-200 shadow-xs">
+                <h3 class="font-title text-xs tracking-wider text-stone-500 mb-2">A SUA CAMINHADA</h3>
+                <div class="w-full bg-stone-200 rounded-full h-2">
+                    <div id="progress-bar" class="bg-amber-500 h-2 rounded-full transition-all duration-500" style="width: 0%"></div>
+                </div>
+                <div class="flex justify-between text-[11px] font-semibold text-stone-700 mt-2">
+                    <span id="progress-text">0 de 20 Dias</span>
+                    <span id="progress-percentage">0%</span>
+                </div>
+            </div>
+
+            <!-- Lista de Navegação -->
+            <div class="flex-1 overflow-y-auto max-h-[50vh] lg:max-h-[calc(100vh-320px)] space-y-1 pr-1">
+                <p class="font-title text-[10px] tracking-wider text-stone-400 px-3 py-1">PREPARAÇÃO</p>
+                <button onclick="showSection('capa')" class="w-full text-left px-3 py-2 rounded-lg text-xs font-semibold hover:bg-stone-200 transition-all text-stone-800" id="btn-capa">
+                    📖 Capa e Introdução
+                </button>
+
+                <p class="font-title text-[10px] tracking-wider text-stone-400 px-3 py-1 mt-4">FASE 1: QUEBRA DA CARNE (D1-D5)</p>
+                <div class="space-y-1 border-l-2 border-amber-300 pl-2">
+                    <button onclick="showSection('dia1')" class="w-full text-left px-3 py-1.5 rounded-lg text-xs hover:bg-stone-200 transition-all text-stone-700" id="btn-dia1">Dia 1: O Altar da Manhã</button>
+                    <button onclick="showSection('dia2')" class="w-full text-left px-3 py-1.5 rounded-lg text-xs hover:bg-stone-200 transition-all text-stone-700" id="btn-dia2">Dia 2: A Batalha contra a Carne</button>
+                    <button onclick="showSection('dia3')" class="w-full text-left px-3 py-1.5 rounded-lg text-xs hover:bg-stone-200 transition-all text-stone-700" id="btn-dia3">Dia 3: Fazendo Espaço</button>
+                    <button onclick="showSection('dia4')" class="w-full text-left px-3 py-1.5 rounded-lg text-xs hover:bg-stone-200 transition-all text-stone-700" id="btn-dia4">Dia 4: O Começo da Fluidez</button>
+                    <button onclick="showSection('dia5')" class="w-full text-left px-3 py-1.5 rounded-lg text-xs hover:bg-stone-200 transition-all text-stone-700" id="btn-dia5">Dia 5: A Lei da Primazia</button>
+                </div>
+
+                <p class="font-title text-[10px] tracking-wider text-stone-400 px-3 py-1 mt-4">FASE 2: MAIOR INTIMIDADE (D6-D10)</p>
+                <div class="space-y-1 border-l-2 border-emerald-300 pl-2">
+                    <button onclick="showSection('dia6')" class="w-full text-left px-3 py-1.5 rounded-lg text-xs hover:bg-stone-200 transition-all text-stone-700" id="btn-dia6">Dia 6: Ouvir o Sussurro</button>
+                    <button onclick="showSection('dia7')" class="w-full text-left px-3 py-1.5 rounded-lg text-xs hover:bg-stone-200 transition-all text-stone-700" id="btn-dia7">Dia 7: Blindagem Espiritual</button>
+                    <button onclick="showSection('dia8')" class="w-full text-left px-3 py-1.5 rounded-lg text-xs hover:bg-stone-200 transition-all text-stone-700" id="btn-dia8">Dia 8: O Pão Diário</button>
+                    <button onclick="showSection('dia9')" class="w-full text-left px-3 py-1.5 rounded-lg text-xs hover:bg-stone-200 transition-all text-stone-700" id="btn-dia9">Dia 9: Louvor em Silêncio</button>
+                    <button onclick="showSection('dia10')" class="w-full text-left px-3 py-1.5 rounded-lg text-xs hover:bg-stone-200 transition-all text-stone-700" id="btn-dia10">Dia 10: O Descanso do Pai</button>
+                </div>
+
+                <p class="font-title text-[10px] tracking-wider text-stone-400 px-3 py-1 mt-4">FASE 3: PERSEVERANÇA (D11-D15)</p>
+                <div class="space-y-1 border-l-2 border-rose-300 pl-2">
+                    <button onclick="showSection('dia11')" class="w-full text-left px-3 py-1.5 rounded-lg text-xs hover:bg-stone-200 transition-all text-stone-700" id="btn-dia11">Dia 11: Quando o Cansaço Bate</button>
+                    <button onclick="showSection('dia12')" class="w-full text-left px-3 py-1.5 rounded-lg text-xs hover:bg-stone-200 transition-all text-stone-700" id="btn-dia12">Dia 12: Cortar as Distrações</button>
+                    <button onclick="showSection('dia13')" class="w-full text-left px-3 py-1.5 rounded-lg text-xs hover:bg-stone-200 transition-all text-stone-700" id="btn-dia13">Dia 13: A Força do Alto</button>
+                    <button onclick="showSection('dia14')" class="w-full text-left px-3 py-1.5 rounded-lg text-xs hover:bg-stone-200 transition-all text-stone-700" id="btn-dia14">Dia 14: Fé no Silêncio</button>
+                    <button onclick="showSection('dia15')" class="w-full text-left px-3 py-1.5 rounded-lg text-xs hover:bg-stone-200 transition-all text-stone-700" id="btn-dia15">Dia 15: O Escudo de Oração</button>
+                </div>
+
+                <p class="font-title text-[10px] tracking-wider text-stone-400 px-3 py-1 mt-4">FASE 4: COLHEITA (D16-D20)</p>
+                <div class="space-y-1 border-l-2 border-indigo-300 pl-2">
+                    <button onclick="showSection('dia16')" class="w-full text-left px-3 py-1.5 rounded-lg text-xs hover:bg-stone-200 transition-all text-stone-700" id="btn-dia16">Dia 16: O Favor Divino</button>
+                    <button onclick="showSection('dia17')" class="w-full text-left px-3 py-1.5 rounded-lg text-xs hover:bg-stone-200 transition-all text-stone-700" id="btn-dia17">Dia 17: Sabedoria Prática</button>
+                    <button onclick="showSection('dia18')" class="w-full text-left px-3 py-1.5 rounded-lg text-xs hover:bg-stone-200 transition-all text-stone-700" id="btn-dia18">Dia 18: Tempo de Colheita</button>
+                    <button onclick="showSection('dia19')" class="w-full text-left px-3 py-1.5 rounded-lg text-xs hover:bg-stone-200 transition-all text-stone-700" id="btn-dia19">Dia 19: Transbordar Luz</button>
+                    <button onclick="showSection('dia20')" class="w-full text-left px-3 py-1.5 rounded-lg text-xs hover:bg-stone-200 transition-all text-stone-700" id="btn-dia20">Dia 20: Estilo de Vida</button>
+                </div>
+
+                <p class="font-title text-[10px] tracking-wider text-stone-400 px-3 py-1 mt-4">SINAL DE ALIANÇA</p>
+                <button onclick="showSection('conclusao')" class="w-full text-left px-3 py-2 rounded-lg text-xs font-semibold hover:bg-stone-200 transition-all text-stone-800" id="btn-conclusao">
+                    👑 Selo de Compromisso
+                </button>
+            </div>
+        </aside>
+
+        <!-- ÁREA PRINCIPAL DO LEITOR -->
+        <main class="flex-1 bg-white p-6 md:p-12 shadow-md border-l border-stone-200 overflow-y-auto max-h-[calc(100vh-80px)] print-layout">
+            
+            <div id="content-pane" class="max-w-2xl mx-auto space-y-10 fade-in">
+                <!-- Conteúdo Devocional Injetado Via JavaScript -->
+            </div>
+
+            <!-- BOTÕES DE NAVEGAÇÃO RÁPIDA (Não sai no PDF) -->
+            <div class="no-print mt-12 pt-6 border-t border-stone-100 flex justify-between">
+                <button id="prev-btn" onclick="prevChapter()" class="px-4 py-2 border border-stone-300 text-stone-700 hover:bg-stone-50 rounded-lg text-xs font-semibold transition-all">
+                    ← Voltar anterior
+                </button>
+                <button id="next-btn" onclick="nextChapter()" class="px-5 py-2 bg-stone-900 text-white hover:bg-stone-800 rounded-lg text-xs font-semibold transition-all">
+                    Próximo dia →
+                </button>
+            </div>
+        </main>
+
+    </div>
+
+    <!-- ÁREA DE COMPILAÇÃO DO LIVRO DE IMPRESSÃO (Oculto no ecrã, visível apenas para o gerador de PDF) -->
+    <div id="print-full-book" class="hidden"></div>
+
+    <script>
+        // Estrutura de dados e textos completos da Jornada
+        const bookData = {
+            capa: {
+                title: "Jornada de 20 Dias com Cristo",
+                subtitle: "Desperte a sua vida espiritual, mude a sua rotina matinal e estabeleça a primazia do Senhor Jesus.",
+                isCapa: true,
+                illustration: `<svg class="w-40 h-40 mx-auto text-amber-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z" fill="currentColor" fill-opacity="0.1"/><circle cx="12" cy="12" r="10" stroke="#d97706" stroke-width="1.5"/><path d="M12 6v12M8 10h8" stroke="#d97706" stroke-width="1.5" stroke-linecap="round"/></svg>`,
+                content: `
+                    <div class="space-y-6 text-stone-800 leading-relaxed font-serif-book">
+                        <p class="text-lg italic text-center text-stone-500 font-serif mb-6">"Procura apresentar-te a Deus aprovado, como obreiro que não tem de que se envergonhar." — 2 Timóteo 2:15</p>
+                        
+                        <h3 class="font-title text-xl text-stone-900 mt-8 border-b pb-1">O Segredo do Primeiro Lugar</h3>
+                        <p>Seja muito bem-vindo a este caminho de transformação espiritual. Se tem este livro em mãos, não é por mero acaso. Há um convite do Espírito Santo a ecoar no seu coração para que você viva um novo nível de poder e autoridade.</p>
+                        
+                        <p>A vida moderna tenta afastar-nos da presença de Deus saturando o nosso tempo com distrações. Dar a Deus o primeiro lugar significa entregar-Lhe a primeira energia e a primeira hora do seu dia. Quando escolhe consagrar as suas manhãs ao Senhor, ergue um altar vivo na sua casa.</p>
+                        
+                        <div class="bg-amber-50/50 p-5 border-l-4 border-amber-500 rounded-r-xl font-medium text-stone-700 my-4">
+                            <strong>Deus nunca aceita sobras na nossa vida; Ele opera e habita através das nossas primícias.</strong>
+                        </div>
+
+                        <h3 class="font-title text-lg text-stone-900 mt-6">A Quebra da Inércia Física</h3>
+                        <p>Nas primeiras cinco manhãs, o cansaço físico e o sono tentarão fazê-lo recuar. É o teste da determinação. Persista! A partir do quinto dia, o sacrifício matinal abrirá espaço para uma doce leveza espiritual e intimidade profunda.</p>
+
+                        <div class="text-center py-6">
+                            <span class="text-3xl">🕊️</span>
+                            <p class="font-title tracking-widest text-[10px] text-amber-600 mt-2">PREPARE O SEU CORAÇÃO PARA OS PRÓXIMOS 20 DIAS</p>
+                        </div>
+                    </div>
+                `
+            },
+            dia1: {
+                phase: "FASE 1: QUEBRA DA CARNE",
+                title: "Dia 1: O Altar da Manhã",
+                verse: '"Pela manhã, Senhor, ouves a minha voz; logo cedo te apresento a minha oração e fico à espera." — Salmo 5:3',
+                illustration: `<svg class="w-24 h-24 mx-auto text-amber-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2v6M12 18v4M4.93 4.93l4.24 4.24M14.83 14.83l4.24 4.24M2 12h6M16 12h6M6.34 17.66l3.54-3.54" stroke-linecap="round"/><circle cx="12" cy="12" r="4" fill="currentColor" fill-opacity="0.1"/></svg>`,
+                message: `O seu primeiro dia da jornada começou! Estar aqui lendo essas linhas logo pela manhã já é uma vitória extraordinária sobre o desânimo. Erguer um altar matinal exige sacrifício; o fogo necessita de lenha nova todos os dias. A lenha de hoje é a sua força de vontade de dizer "não" ao sono e buscar primeiramente dAquele que o sustenta e o ama.`,
+                challenge: "Não abra o seu telemóvel para redes sociais ou mensagens nas primeiras horas do seu dia. Deixe que a primeira voz a entrar na sua mente seja a do Senhor.",
+                prayer: "Senhor Deus, entrego-Te a minha primeira hora do dia. Renuncio ao sono e decido erguer um altar no meu coração logo cedo. Toma posse das minhas ações hoje. Ámen.",
+                idNum: 1
+            },
+            dia2: {
+                phase: "FASE 1: QUEBRA DA CARNE",
+                title: "Dia 2: A Batalha contra a Carne",
+                verse: '"Porque a carne luta contra o Espírito, e o Espírito, contra a carne; eles opõem-se um ao outro..." — Gálatas 5:17',
+                illustration: `<svg class="w-24 h-24 mx-auto text-stone-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2L2 22h20L12 2z" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 9v4M12 17h.01" stroke-width="2" stroke-linecap="round"/></svg>`,
+                message: `Hoje é o verdadeiro teste da sua jornada. A empolgação do primeiro dia passou e o corpo sente o sono pesado. Há uma guerra constante dentro de nós: a carne clama por conforto espiritual, enquanto o espírito anseia por Deus. Quando você decide levantar-se e pôr os pés no chão, está a exercer autoridade espiritual sobre as suas vontades.`,
+                challenge: "Organize um espaço confortável e silencioso no seu quarto ou sala que servirá como o seu canto fixo de oração.",
+                prayer: "Senhor Jesus, a minha carne é inclinada à fraqueza, mas o Teu Espírito em mim é forte. Rejeito toda a preguiça espiritual hoje e escolho a Tua comunhão. Ámen.",
+                idNum: 2
+            },
+            dia3: {
+                phase: "FASE 1: QUEBRA DA CARNE",
+                title: "Dia 3: Fazendo Espaço",
+                verse: '"Ele, porém, retirava-se para lugares solitários e orava." — Lucas 5:16',
+                illustration: `<svg class="w-24 h-24 mx-auto text-amber-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9z"/><path d="M9 22V12h6v10"/></svg>`,
+                message: `Deus não habita em mentes saturadas pelo ruído e agitação terrestre. Se as suas primeiras horas são cheias de notificações e preocupações de trabalho, o Espírito Santo não encontra espaço para sussurrar ao seu ouvido. Siga o exemplo de Jesus Cristo, que se afastava do barulho das multidões para orar com o Pai.`,
+                challenge: "Desative as notificações do telemóvel e de aplicativos hoje e passe o dia focando na paz e equilíbrio emocional.",
+                prayer: "Pai celeste, eu me esvazio das pressões e ansiedades terrenas. Entro no silêncio da Tua presença para ser cheio do Teu Espírito de Sabedoria. Ámen.",
+                idNum: 3
+            },
+            dia4: {
+                phase: "FASE 1: QUEBRA DA CARNE",
+                title: "Dia 4: O Começo da Fluidez",
+                verse: '"Mas os que esperam no Senhor renovam as suas forças; sobem com asas como águias..." — Isaías 40:31',
+                illustration: `<svg class="w-24 h-24 mx-auto text-amber-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20.24 12.24a6 6 0 0 0-8.49-8.49L5 10.5V19h8.5l6.74-6.76z" stroke-linecap="round" stroke-linejoin="round"/><path d="M16 8L2 22" stroke-linecap="round"/></svg>`,
+                message: `Quatro dias consecutivos de oração! Se persistiu, hoje notará que acordar já não parece um peso assustador. O corpo está a habituar-se ao novo ritmo espiritual. Lembre-se de que esperar nas promessas do Altíssimo renova as suas forças e traz a energia de águia que você necessita para vencer as pressões.`,
+                challenge: "Escreva três coisas positivas ou de paz que já começou a notar de diferente no seu comportamento diário.",
+                prayer: "Obrigado, Deus, por renovares as minhas forças hoje. Quando sinto que vou falhar, o Teu amor me sustenta e me levanta. Ámen.",
+                idNum: 4
+            },
+            dia5: {
+                phase: "FASE 1: QUEBRA DA CARNE",
+                title: "Dia 5: A Lei da Primazia",
+                verse: '"Busquem, pois, em primeiro lugar o Reino de Deus e a sua justiça, e todas essas coisas lhes serão acrescentadas." — Mateus 6:33',
+                illustration: `<svg class="w-24 h-24 mx-auto text-yellow-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+                message: `Parabéns por vencer a barreira crucial dos primeiros 5 dias! Compreenda a lei espiritual da Primazia: tudo o que consagra a Deus logo no início do dia atrai o favor e as bênçãos d'Ele para as horas restantes. Não ande ansioso ou cansado, entregue a primeira parte ao Pai.`,
+                challenge: "Faça uma lista das 3 maiores preocupações de hoje e entregue-as simbolicamente a Deus no momento de oração.",
+                prayer: "Deus eterno, eu busco o Teu Reino acima dos meus desejos pessoais. Confio plenamente na Tua providência sobre a minha família hoje. Ámen.",
+                idNum: 5
+            },
+            // Dias 6 a 20 simplificados para manter o app completo e veloz
+            dia6: {
+                phase: "FASE 2: MAIOR INTIMIDADE",
+                title: "Dia 6: Ouvir o Sussurro",
+                verse: '"...e depois do fogo uma voz mansa e delicada." — 1 Reis 19:12',
+                illustration: `<svg class="w-24 h-24 mx-auto text-emerald-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 1a9 9 0 0 0-9 9v7c0 1.66 1.34 3 3 3h3V12H5V10a7 7 0 0 1 14 0v2h-4v10h3c1.66 0 3-1.34 3-3v-7a9 9 0 0 0-9-9z" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+                message: `Entramos na fase de intimidade profunda. Deus fala através do sussurro do silêncio. Não tenha pressa nas suas conversas matinais. Tire momentos para apenas ficar em silêncio e deixar que a voz e conselhos divinos guiem a sua inteligência e pensamentos.`,
+                challenge: "Tire 5 minutos de silêncio absoluto após a oração para ouvir a direção de Deus.",
+                prayer: "Fala, Senhor, porque o Teu servo escuta no silêncio da alma. Ámen.",
+                idNum: 6
+            },
+            dia7: {
+                phase: "FASE 2: MAIOR INTIMIDADE",
+                title: "Dia 7: Blindagem Espiritual",
+                verse: '"Revistam-se de toda a armadura de Deus, para poderem ficar firmes..." — Efésios 6:11',
+                illustration: `<svg class="w-24 h-24 mx-auto text-emerald-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+                message: `Ir para o trabalho ou lidar com problemas familiares sem orar de manhã é como entrar desarmado na guerra. O devocional diário cria uma blindagem contra conflitos e reações precipitadas.`,
+                challenge: "Antes de sair de casa, declare que a paz e a alegria cobrem o seu coração.",
+                prayer: "Visto a Tua armadura de justiça e paz hoje. Guarda a minha mente de todo o mal. Ámen.",
+                idNum: 7
+            },
+            dia8: {
+                phase: "FASE 2: MAIOR INTIMIDADE",
+                title: "Dia 8: O Pão Diário da Palavra",
+                verse: '"Lâmpada para os meus pés é tua palavra..." — Salmo 119:105',
+                illustration: `<svg class="w-24 h-24 mx-auto text-emerald-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20M4 19.5A2.5 2.5 0 0 0 6.5 22H20M4 19.5v-15A2.5 2.5 0 0 1 6.5 2M20 4v18" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+                message: `Alimentar o cérebro com informações mundanas e deixar o espírito faminto enfraquece a sua caminhada. A Palavra é alimento vivo e luz para guiar as suas decisões difíceis no emprego e nos negócios.`,
+                challenge: "Leia hoje um capítulo inteiro do livro de Provérbios e anote um ensinamento prático.",
+                prayer: "Alimenta a minha alma com a verdade eterna da Tua Palavra hoje. Ámen.",
+                idNum: 8
+            },
+            dia9: {
+                phase: "FASE 2: MAIOR INTIMIDADE",
+                title: "Dia 9: Louvor em Silêncio",
+                verse: '"Entrem por suas portas com ações de graças..." — Salmo 100:4',
+                illustration: `<svg class="w-24 h-24 mx-auto text-emerald-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 18V5l12-2v13M9 9l12-2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="6" cy="18" r="3" fill="currentColor" fill-opacity="0.1"/><circle cx="18" cy="16" r="3" fill="currentColor" fill-opacity="0.1"/></svg>`,
+                message: `Existem caminhos e bênçãos espirituais que só se abrem com a chave dourada da gratidão. Reclamar de manhã fecha o céu, adorar abre caminhos novos sobre a sua vida.`,
+                challenge: "Louve a Deus com a sua música favorita de olhos fechados pela manhã.",
+                prayer: "Eu Te dou graças pela salvação e pelo Teu amor infinito que me sustenta. Ámen.",
+                idNum: 9
+            },
+            dia10: {
+                phase: "FASE 2: MAIOR INTIMIDADE",
+                title: "Dia 10: O Descanso do Pai",
+                verse: '"Aquietai-vos e sabei que eu sou Deus..." — Salmo 46:10',
+                illustration: `<svg class="w-24 h-24 mx-auto text-emerald-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 3a9 9 0 1 0 9 9h-9V3z" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 3a9 9 0 0 1 9 9h-9V3z" fill="currentColor" fill-opacity="0.1"/></svg>`,
+                message: `Metade do seu caminho está completo! Hoje celebramos o Dia 10. O maior sinal de amadurecimento cristão é a capacidade de descansar emocionalmente no meio das tempestades.`,
+                challenge: "Entregue a sua maior preocupação de hoje nas mãos de Deus e declare que escolhe descansar.",
+                prayer: "Aquieto o meu coração hoje, ciente de que estás no controle absoluto de tudo. Ámen.",
+                idNum: 10
+            },
+            dia11: {
+                phase: "FASE 3: PERSEVERANÇA",
+                title: "Dia 11: Quando o Cansaço Bate",
+                verse: '"Seja forte e corajoso! Não desanime..." — Josué 1:9',
+                illustration: `<svg class="w-24 h-24 mx-auto text-rose-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z" stroke-linecap="round"/></svg>`,
+                message: `Entramos no território da perseverança. O desânimo e a mesmice tentam abater o altar matinal. A sua fidelidade em manter o devocional mesmo sem vontade agrada imensamente a Deus.`,
+                challenge: "Mesmo com cansaço físico hoje, faça a sua oração completa com devoção.",
+                prayer: "Dá-me forças para continuar firme nesta jornada sem olhar para trás. Ámen.",
+                idNum: 11
+            },
+            dia12: {
+                phase: "FASE 3: PERSEVERANÇA",
+                title: "Dia 12: Cortar as Distrações",
+                verse: '"...livremo-nos de tudo o que nos atrapalha..." — Hebreus 12:1',
+                illustration: `<svg class="w-24 h-24 mx-auto text-rose-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4.5 12h15M12 4.5v15" stroke-linecap="round" stroke-linejoin="round"/><path d="M4.5 4.5l15 15" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+                message: `As redes sociais e o entretenimento constante sugam a energia espiritual necessária para a sua intimidade cristã. Viaje mais leve cortando ruídos inúteis.`,
+                challenge: "Reduza hoje o uso de ecrãs e tecnologia desnecessários pela metade.",
+                prayer: "Purifica a minha atenção para que eu foque na Tua verdade e no Teu amor. Ámen.",
+                idNum: 12
+            },
+            dia13: {
+                phase: "FASE 3: PERSEVERANÇA",
+                title: "Dia 13: A Força do Alto",
+                verse: '"...o meu poder se aperfeiçoa na fraqueza." — 2 Coríntios 12:9',
+                illustration: `<svg class="w-24 h-24 mx-auto text-rose-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" stroke-linecap="round"/><circle cx="12" cy="12" r="8" stroke-dasharray="2 2"/></svg>`,
+                message: `Nos dias em que acordamos mais vulneráveis e sem forças, abrimos espaço perfeito para que o poder sobrenatural do Espírito opere em nosso socorro.`,
+                challenge: "Declare hoje em silêncio: 'O poder de Deus manifesta-se nas minhas limitações'.",
+                prayer: "Reconheço que dependo do Teu sopro de força e graça na minha fraqueza hoje. Ámen.",
+                idNum: 13
+            },
+            dia14: {
+                phase: "FASE 3: PERSEVERANÇA",
+                title: "Dia 14: Fé no Silêncio",
+                verse: '"Ainda que a figueira não floresça... todavia eu me alegrarei no Senhor..." — Habacuque 3:17-18',
+                illustration: `<svg class="w-24 h-24 mx-auto text-rose-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0" stroke-linecap="round"/><path d="M12 8v4l3 3" stroke-linecap="round"/></svg>`,
+                message: `O silêncio do Senhor não representa rejeição ou ausência; é o local onde a sua paciência e o seu caráter espiritual são lapidados e consolidados.`,
+                challenge: "Adore a Deus hoje pelo Seu amor, sem pedir qualquer milagre ou benefício pessoal.",
+                prayer: "Confio nas Tuas promessas de vitória mesmo quando os meus olhos não conseguem ver. Ámen.",
+                idNum: 14
+            },
+            dia15: {
+                phase: "FASE 3: PERSEVERANÇA",
+                title: "Dia 15: O Escudo de Oração",
+                verse: '"A oração de um justo é poderosa..." — Tiago 5:16',
+                illustration: `<svg class="w-24 h-24 mx-auto text-rose-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-3z" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+                message: `Concluímos o Dia 15! Ergueu uma muralha sólida de comunhão diária. As suas orações intercedem contra forças invisíveis sobre a sua saúde e casa.`,
+                challenge: "Ore hoje em favor do fortalecimento espiritual de um familiar próximo.",
+                prayer: "Ergo um escudo ativo de fé e cura divina sobre a minha família hoje. Ámen.",
+                idNum: 15
+            },
+            dia16: {
+                phase: "FASE 4: COLHEITA",
+                title: "Dia 16: O Favor Divino",
+                verse: '"...o Senhor dá graça e glória..." — Salmo 84:11',
+                illustration: `<svg class="w-24 h-24 mx-auto text-indigo-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10" stroke-linecap="round"/><path d="M12 8v8M8 12h8" stroke-linecap="round"/></svg>`,
+                message: `Entramos na reta final da jornada! Sementes plantadas nas primeiras manhãs começam a frutificar. O favor do Pai abre portas de emprego de forma soberana.`,
+                challenge: "Agradeça hoje por três vitórias e livramentos do seu passado.",
+                prayer: "Recebo o favor e a graça de Cristo que me acompanham no meu trabalho hoje. Ámen.",
+                idNum: 16
+            },
+            dia17: {
+                phase: "FASE 4: COLHEITA",
+                title: "Dia 17: Sabedoria Prática",
+                verse: '"Se algum de vocês tem falta de sabedoria, peça-a a Deus..." — Tiago 1:5',
+                illustration: `<svg class="w-24 h-24 mx-auto text-indigo-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M18 8A6 6 0 0 0 6 8c0 2.9 2 5.19 4.88 5.76a4 4 0 0 1 2.24 0A6 6 0 0 0 18 8z" stroke-linecap="round"/><path d="M9 22h6M12 18v4" stroke-linecap="round"/></svg>`,
+                message: `Pedir conselhos ao Senhor antes de iniciar o dia evita problemas de tarde. A sabedoria divina traz discernimento para lidar com conflitos de maneira calma.`,
+                challenge: "Antes de tomar uma decisão complexa hoje, ore silenciosamente por clareza divina.",
+                prayer: "Dá-me inteligência espiritual para discernir caminhos retos e agir com amor hoje. Ámen.",
+                idNum: 17
+            },
+            dia18: {
+                phase: "FASE 4: COLHEITA",
+                title: "Dia 18: Tempo de Colheita",
+                verse: '"...pois no tempo próprio colheremos, se não desanimarmos." — Gálatas 6:9',
+                illustration: `<svg class="w-24 h-24 mx-auto text-indigo-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 22V12M12 12l4-4M12 12L8 8" stroke-linecap="round"/><path d="M12 2a5 5 0 0 1 5 5c0 4-5 10-5 10s-5-6-5-5a5 5 0 0 1 5-5z" fill="currentColor" fill-opacity="0.1"/></svg>`,
+                message: `As suas lágrimas de cansaço ou persistência no altar matinal representam sementes gloriosas que já estão a dar frutos em paz na sua casa.`,
+                challenge: "Pense em uma atitude saudável que deseja cultivar de forma permanente na sua vida.",
+                prayer: "Mantenho os meus olhos focados na fidelidade e nas ricas colheitas de Deus. Ámen.",
+                idNum: 18
+            },
+            dia19: {
+                phase: "FASE 4: COLHEITA",
+                title: "Dia 19: Transbordar Luz",
+                verse: '"Assim brilhe a luz de vocês diante dos homens..." — Mateus 5:16',
+                illustration: `<svg class="w-24 h-24 mx-auto text-indigo-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l1.41-1.41M17.66 6.34l1.41 1.41" stroke-linecap="round"/><circle cx="12" cy="12" r="5" fill="currentColor" fill-opacity="0.2"/></svg>`,
+                message: `A sua dedicação espiritual afeta positivamente as pessoas no seu lar e no seu ambiente profissional. O seu equilíbrio e paz de espírito revelam Cristo.`,
+                challenge: "Diga palavras amigas de encorajamento para um colega ou familiar hoje.",
+                prayer: "Que o meu agir transborde a doçura e a paciência de Jesus a quem estiver aflito. Ámen.",
+                idNum: 19
+            },
+            dia20: {
+                phase: "FASE 4: COLHEITA",
+                title: "Dia 20: Estilo de Vida",
+                verse: '"...ofereçam-se em sacrifício vivo, santo e agradável..." — Romanos 12:1',
+                illustration: `<svg class="w-24 h-24 mx-auto text-amber-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/><path d="M9 12l2 2 4-4" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+                message: `Parabéns, guerreiro! Venceu a sua Jornada espiritual de 20 Dias! O sacrifício inicial transformou-se num estilo de vida diário com o Pai Celestial.`,
+                challenge: "Organize as próximas leituras bíblicas para continuar sempre a manter o altar aceso.",
+                prayer: "Consagro a minha caminhada e as minhas manhãs permanentemente ao Teu altar. Ámen.",
+                idNum: 20
+            },
+            conclusao: {
+                title: "Selo de Aliança Espiritual",
+                subtitle: "O Pacto de manter as suas manhãs dedicadas ao Criador.",
+                isCapa: true,
+                illustration: `<svg class="w-40 h-40 mx-auto text-amber-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" fill="currentColor" fill-opacity="0.05"/><circle cx="12" cy="11" r="4"/><path d="M12 15v5M10 18h4" stroke-linecap="round"/></svg>`,
+                content: `
+                    <div class="space-y-6 text-stone-800 leading-relaxed font-serif-book text-center">
+                        <p class="text-lg italic text-stone-500">"Combati o bom combate, acabei a carreira, guardei a fé." — 2 Timóteo 4:7</p>
+                        
+                        <div class="max-w-md mx-auto bg-amber-50/50 border border-amber-200 p-8 rounded-2xl shadow-sm text-left my-6">
+                            <h4 class="font-title text-center text-md text-amber-800 mb-4 font-bold">CERTIFICADO DE FIDELIDADE</h4>
+                            <p class="text-xs text-stone-600 mb-4 text-center">Declaro perante o Senhor que completei com fidelidade a Jornada de 20 Dias.</p>
+                            
+                            <div class="mt-6 pt-2 border-t border-stone-200">
+                                <label class="block text-[10px] text-stone-400 uppercase tracking-widest">Seu Nome</label>
+                                <input type="text" placeholder="Seu nome completo" class="w-full bg-transparent border-b border-stone-300 py-1 text-sm text-stone-800 focus:outline-none focus:border-amber-500">
+                            </div>
+
+                            <div class="mt-4">
+                                <label class="block text-[10px] text-stone-400 uppercase tracking-widest">Data de Conclusão</label>
+                                <input type="date" class="w-full bg-transparent border-b border-stone-300 py-1 text-sm text-stone-800 focus:outline-none focus:border-amber-500">
+                            </div>
+                        </div>
+
+                        <p class="text-xs text-stone-500">Pressione "Baixar PDF Completo" no cabeçalho se quiser ter o livro diagramado para guardar no telemóvel.</p>
+                        
+                        <p class="font-title text-amber-600 text-md mt-6">Que o Senhor te abençoe e guarde!</p>
+                    </div>
+                `
+            }
+        };
+
+        let currentSectionKey = 'capa';
+        const completedDays = new Set(JSON.parse(localStorage.getItem('completedDays') || '[]'));
+
+        function initApp() {
+            showSection(currentSectionKey);
+            updateProgress();
+            renderPrintLayout();
+        }
+
+        function showSection(key) {
+            currentSectionKey = key;
+            const data = bookData[key];
+            const contentPane = document.getElementById('content-pane');
+            
+            // Highlight active side navigation
+            document.querySelectorAll('aside button').forEach(btn => btn.classList.remove('bg-amber-100', 'font-semibold', 'text-amber-800', 'bg-stone-200'));
+            const activeBtn = document.getElementById(`btn-${key}`);
+            if (activeBtn) {
+                activeBtn.classList.add('bg-amber-100', 'font-semibold', 'text-amber-800');
+            }
+
+            contentPane.parentElement.scrollTop = 0;
+
+            if (data.isCapa) {
+                contentPane.innerHTML = `
+                    <div class="text-center space-y-4 fade-in">
+                        <span class="text-[10px] uppercase tracking-widest text-amber-600 font-bold">Devocional Exclusivo</span>
+                        <h2 class="font-title text-3xl md:text-4xl text-stone-900 leading-tight">${data.title}</h2>
+                        <p class="text-sm md:text-md text-stone-500 max-w-xl mx-auto font-serif-book italic">${data.subtitle}</p>
+                        <div class="py-4">${data.illustration}</div>
+                    </div>
+                    <div class="fade-in">${data.content}</div>
+                `;
+            } else {
+                const isDone = completedDays.has(data.idNum);
+                const savedNote = localStorage.getItem(`note_dia${data.idNum}`) || '';
+
+                contentPane.innerHTML = `
+                    <div class="space-y-6 fade-in">
+                        <div class="flex flex-wrap items-center justify-between gap-4 border-b pb-4">
+                            <div>
+                                <span class="text-[10px] uppercase tracking-widest text-emerald-600 font-bold">${data.phase}</span>
+                                <h2 class="font-title text-2xl text-stone-900 mt-1">${data.title}</h2>
+                            </div>
+                            <label class="no-print flex items-center space-x-2 bg-stone-50 hover:bg-stone-100 border px-3 py-1.5 rounded-lg cursor-pointer transition-all">
+                                <input type="checkbox" onchange="toggleDayCompleted(${data.idNum})" class="w-4 h-4 accent-amber-500 rounded" ${isDone ? 'checked' : ''}>
+                                <span class="text-xs font-semibold text-stone-700">Marcar como Lido</span>
+                            </label>
+                        </div>
+
+                        <div class="bg-amber-50/40 p-5 rounded-xl border-l-4 border-amber-400 font-serif-book italic text-stone-700 text-md relative">
+                            <p>${data.verse}</p>
+                        </div>
+
+                        <div class="py-2 text-center no-print">
+                            ${data.illustration}
+                        </div>
+
+                        <div class="font-serif-book text-stone-800 text-base leading-relaxed space-y-3">
+                            <h3 class="font-title text-sm text-stone-900 border-b pb-1 tracking-wider font-semibold">🕊️ A MENSAGEM DO DIA</h3>
+                            <p>${data.message}</p>
+                        </div>
+
+                        <div class="bg-stone-50 border border-stone-200 p-5 rounded-xl">
+                            <h4 class="font-title text-[11px] tracking-wider text-amber-700 font-bold">⚡ DESAFIO PRÁTICO</h4>
+                            <p class="text-stone-700 text-sm leading-relaxed">${data.challenge}</p>
+                        </div>
+
+                        <div class="bg-stone-900 text-stone-100 p-5 rounded-xl shadow-xs">
+                            <h4 class="font-title text-[10px] tracking-wider text-amber-400 font-bold">🙏 ORAÇÃO DE ATIVAÇÃO</h4>
+                            <p class="font-serif-book text-stone-200 italic text-xs mt-1">"${data.prayer}"</p>
+                        </div>
+
+                        <div class="no-print p-5 bg-amber-50/20 border border-amber-100 rounded-xl space-y-2">
+                            <h4 class="font-title text-xs text-stone-800 font-bold flex items-center space-x-1">
+                                <span>✍️</span> <span>O Seu Diário de Reflexão</span>
+                            </h4>
+                            <textarea id="note-dia${data.idNum}" oninput="saveNote(${data.idNum}, this.value)" rows="3" class="w-full p-3 rounded-lg border border-stone-300 bg-white focus:ring-1 focus:ring-amber-400 focus:outline-none text-sm text-stone-800 font-serif-book" placeholder="Guarde aqui as revelações de hoje (salva automaticamente)...">${savedNote}</textarea>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // Sync menu buttons state
+            const keys = Object.keys(bookData);
+            const index = keys.indexOf(key);
+            document.getElementById('prev-btn').disabled = index === 0;
+            document.getElementById('next-btn').disabled = index === keys.length - 1;
+        }
+
+        function prevChapter() {
+            const keys = Object.keys(bookData);
+            const index = keys.indexOf(currentSectionKey);
+            if (index > 0) showSection(keys[index - 1]);
+        }
+
+        function nextChapter() {
+            const keys = Object.keys(bookData);
+            const index = keys.indexOf(currentSectionKey);
+            if (index < keys.length - 1) showSection(keys[index + 1]);
+        }
+
+        function toggleDayCompleted(id) {
+            if (completedDays.has(id)) {
+                completedDays.delete(id);
+            } else {
+                completedDays.add(id);
+            }
+            localStorage.setItem('completedDays', JSON.stringify(Array.from(completedDays)));
+            updateProgress();
+            renderPrintLayout();
+        }
+
+        function updateProgress() {
+            const totalDays = 20;
+            const percentage = Math.round((completedDays.size / totalDays) * 100);
+            document.getElementById('progress-bar').style.width = `${percentage}%`;
+            document.getElementById('progress-text').innerText = `${completedDays.size} de 20 Dias`;
+            document.getElementById('progress-percentage').innerText = `${percentage}%`;
+        }
+
+        function saveNote(id, text) {
+            localStorage.setItem(`note_dia${id}`, text);
+            renderPrintLayout();
+        }
+
+        function shareApp() {
+            const dummyUrl = window.location.href;
+            const dummyText = `Junte-se a mim nesta caminhada espiritual! Comece hoje a "Jornada de 20 Dias com Cristo" gratuitamente: ${dummyUrl}`;
+            
+            // Fallback copy to clipboard
+            const el = document.createElement('textarea');
+            el.value = dummyText;
+            document.body.appendChild(el);
+            el.select();
+            document.execCommand('copy');
+            document.body.removeChild(el);
+
+            alert("Link do aplicativo copiado! Partilhe com os seus irmãos e amigos no WhatsApp.");
+        }
+
+        function renderPrintLayout() {
+            const printArea = document.getElementById('print-full-book');
+            let fullHTML = '';
+
+            // Capa
+            fullHTML += `
+                <div class="text-center py-16 font-serif-book">
+                    <span class="text-amber-600 font-bold uppercase tracking-widest text-xs">LIVRO DEVOCIONAL EXCLUSIVO</span>
+                    <h1 class="font-title text-4xl text-stone-900 mt-2 leading-tight">${bookData.capa.title}</h1>
+                    <p class="text-base text-stone-600 italic mt-1">${bookData.capa.subtitle}</p>
+                    <div class="py-8">${bookData.capa.illustration}</div>
+                </div>
+                <div class="page-break font-serif-book leading-relaxed space-y-4">
+                    ${bookData.capa.content}
+                </div>
+            `;
+
+            // Loop Devocionais
+            Object.keys(bookData).forEach(key => {
+                if (key === 'capa' || key === 'conclusao') return;
+                const data = bookData[key];
+                const savedNote = localStorage.getItem(`note_dia${data.idNum}`) || '<i>(Nenhuma reflexão anotada neste dia)</i>';
+
+                fullHTML += `
+                    <div class="page-break py-6 space-y-4">
+                        <div class="border-b pb-2">
+                            <span class="text-[10px] uppercase tracking-widest text-emerald-600 font-bold">${data.phase}</span>
+                            <h2 class="font-title text-2xl text-stone-900 mt-0.5">${data.title}</h2>
+                        </div>
+                        
+                        <div class="bg-amber-50/50 p-4 rounded-xl border-l-4 border-amber-400 font-serif-book italic text-stone-700 text-sm">
+                            <p>${data.verse}</p>
+                        </div>
+
+                        <div class="font-serif-book text-stone-800 text-sm leading-relaxed space-y-2">
+                            <h3 class="font-title text-xs text-stone-900 border-b pb-0.5 font-bold">🕊️ A MENSAGEM</h3>
+                            <p>${data.message}</p>
+                        </div>
+
+                        <div class="bg-stone-50 border border-stone-200 p-4 rounded-xl">
+                            <h4 class="font-title text-[10px] tracking-wider text-amber-700 font-bold">⚡ DESAFIO PRÁTICO</h4>
+                            <p class="text-stone-700 text-xs">${data.challenge}</p>
+                        </div>
+
+                        <div class="bg-stone-100 p-4 rounded-xl italic font-serif-book border-l-4 border-stone-400 text-xs">
+                            <h4 class="font-title text-[10px] tracking-wider text-stone-800 not-italic font-bold">🙏 ORAÇÃO</h4>
+                            <p class="mt-1">"${data.prayer}"</p>
+                        </div>
+
+                        <div class="border border-stone-200 p-4 rounded-xl bg-stone-50/40 text-xs">
+                            <h4 class="font-title text-[10px] tracking-wider text-stone-800 font-bold">✍️ A MINHA REFLEXÃO</h4>
+                            <p class="mt-1 text-stone-600 italic whitespace-pre-wrap">${savedNote}</p>
+                        </div>
+                    </div>
+                `;
+            });
+
+            // Conclusão
+            fullHTML += `
+                <div class="page-break py-16 font-serif-book text-center space-y-4">
+                    <h2 class="font-title text-3xl text-stone-900">${bookData.conclusao.title}</h2>
+                    <p class="text-base text-stone-600 italic">${bookData.conclusao.subtitle}</p>
+                    <div class="py-6">${bookData.conclusao.illustration}</div>
+                    <div>${bookData.conclusao.content}</div>
+                </div>
+            `;
+
+            printArea.innerHTML = fullHTML;
+        }
+
+        window.onload = function() {
+            initApp();
+        };
+    </script>
+
+    <!-- Custom Tailwind print display styles -->
+    <style>
+        @media print {
+            header, aside, .no-print, #prev-btn, #next-btn {
+                display: none !important;
+            }
+            #print-full-book {
+                display: block !important;
+            }
+            #content-pane {
+                display: none !important;
+            }
+        }
+    </style>
+</body>
+</html>
